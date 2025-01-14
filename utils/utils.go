@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"io"
 	"net/http"
 	"os/exec"
@@ -19,10 +20,11 @@ type Body struct {
 	Messages []Message `json:"messages"`
 }
 
-func GetAvailableModels(url string, API_KEY string) []string {
+func GetAvailableModels(API_KEY string) []string {
 	var availableModels []string
+	get_models_url := "https://api.groq.com/openai/v1/models"
 
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest("GET", get_models_url, nil)
 	if err != nil {
 		fmt.Println("Error creating request:", err)
 		return nil
@@ -59,6 +61,10 @@ func GetAvailableModels(url string, API_KEY string) []string {
 	} else {
 		fmt.Println("No models available or incorrect response format.")
 	}
+
+	sort.Slice(availableModels, func(i, j int) bool {
+		return availableModels[i] < availableModels[j]
+	})
 
 	return availableModels
 }
@@ -127,3 +133,4 @@ func ModelCall(model string, prompt string, sys_prompt string, API_KEY string) s
 	}
 	return ""
 }
+

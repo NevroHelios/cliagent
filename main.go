@@ -90,26 +90,29 @@ func main() {
 		}
 	}
 
-	git_diff := ""
 	Prompt = getPrompt(purpose, Prompt)
 
 	// fmt.Println(Prompt)
-	res := utils.ModelCall(Model, Prompt, "", GROQ_API_KEY)
-	if res == "" {
-		fmt.Println("Model Calling went wrong")
-		return
-	}
-	if res[0] == '"' {
-		res = res[1 : len(res)-1]
-	}
-	fmt.Println(res)
-
-	// copy to clipboard
-	if git_diff != "" && purpose == "commit" {
-		clipErr := clipboard.WriteAll(res)
-		if clipErr != nil {
-			fmt.Println("failed to copy ", clipErr)
+	if Prompt != "" {
+		res := utils.ModelCall(Model, Prompt, "", GROQ_API_KEY)
+		if res == "" {
+			fmt.Println("Model Calling went wrong")
 			return
 		}
+		if res[0] == '"' {
+			res = res[1 : len(res)-1]
+		}
+		fmt.Println(res)
+	
+		// copy to clipboard
+		if purpose == "commit" {
+			clipErr := clipboard.WriteAll(res)
+			if clipErr != nil {
+				fmt.Println("failed to copy ", clipErr)
+				return
+			}
+		}
+	} else {
+		fmt.Println("yare yare! Prompt is empty!!!")
 	}
 }
