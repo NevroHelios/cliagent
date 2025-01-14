@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	// "os/exec"
@@ -35,6 +36,9 @@ func main() {
 	// get available models
 	get_models_url := "https://api.groq.com/openai/v1/models"
 	AvailableModels = utils.GetAvailableModels(get_models_url, GROQ_API_KEY)
+	sort.Slice(AvailableModels, func(i, j int) bool {
+		return AvailableModels[i] < AvailableModels[j]
+	})
 
 	// huh options
 	modelOptions := []huh.Option[string]{}
@@ -87,7 +91,7 @@ func main() {
 		
 		`
 		lines := strings.Split(cmd, "\n")
-		if len(lines) > 1000 {
+		if len(lines) > 2000 {
 			re := regexp.MustCompile(`^.func`)
 			for _, line := range lines {
 				if re.MatchString(line) {
@@ -109,7 +113,7 @@ func main() {
 	// fmt.Println(Prompt)
 	res := utils.ModelCall(Model, Prompt, "", GROQ_API_KEY)
 	if res == "" {
-		fmt.Println("Something went wrong")
+		fmt.Println("Model Calling went wrong")
 		return
 	}
 	if res[0] == '"' {
@@ -121,7 +125,7 @@ func main() {
 	if git_diff != "" {
 		clipErr := clipboard.WriteAll(res)
 		if clipErr != nil {
-			fmt.Println("Error initializing clipboard:", clipErr)
+			fmt.Println("failed to copy ", clipErr)
 			return
 		}
 	}
