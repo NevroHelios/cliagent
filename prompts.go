@@ -53,7 +53,7 @@ func getPrompt(purpose string, prompt string) string {
 		return Prompt
 	} else {
 		template := `
-			You are a helpful assistant that can answer questions about code.
+			You are a helpful assistant that can answer questions about anything.
 			You should answer the question as concisely as possible.
 			If you don't know the answer, just say that you don't know, don't try to make up an answer.
 			Note: You are to return only the answer and nothing else.
