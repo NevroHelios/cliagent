@@ -30,7 +30,42 @@ var languagePatterns = map[string][]ChangeType{
 		{Pattern: `^[+-]\s*class\s+\w+`, Description: "class changes", Priority: 1},
 		{Pattern: `^[+-]\s*@\w+`, Description: "decorator changes", Priority: 2},
 	},
-}
+	"typescript": {
+		{Pattern: `^[+-]\s*function\s+\w+`, Description: "function changes", Priority: 1},
+		{Pattern: `^[+-]\s*class\s+\w+`, Description: "class changes", Priority: 1},
+		{Pattern: `^[+-]\s*export\s+`, Description: "export changes", Priority: 2},
+	},
+	"java": {
+		{Pattern: `^[+-]\s*public\s+class\s+\w+`, Description: "class changes", Priority: 1},
+		{Pattern: `^[+-]\s*public\s+interface\s+\w+`, Description: "interface changes", Priority: 1},
+		{Pattern: `^[+-]\s*public\s+enum\s+\w+`, Description: "enum changes", Priority: 1},
+		{Pattern: `^[+-]\s*public\s+static\s+void\s+main\s*\(`, Description: "main method changes", Priority: 1},
+		{Pattern: `^[+-]\s*public\s+static\s+void\s+\w+\s*\(`, Description: "method changes", Priority: 2},
+	},
+	"jsx": {
+		{Pattern: `^[+-]\s*function\s+\w+`, Description: "function changes", Priority: 1},
+		{Pattern: `^[+-]\s*class\s+\w+`, Description: "class changes", Priority: 1},
+	},
+	"tsx": {
+		{Pattern: `^[+-]\s*function\s+\w+`, Description: "function changes", Priority: 1},
+		{Pattern: `^[+-]\s*class\s+\w+`, Description: "class changes", Priority: 1},
+	},
+	"swift": {
+		{Pattern: `^[+-]\s*func\s+\w+`, Description: "function changes", Priority: 1},
+		{Pattern: `^[+-]\s*class\s+\w+`, Description: "class changes", Priority: 1},
+		{Pattern: `^[+-]\s*extension\s+\w+`, Description: "extension changes", Priority: 2},
+	},
+	"kotlin": {
+		{Pattern: `^[+-]\s*fun\s+\w+`, Description: "function changes", Priority: 1},
+		{Pattern: `^[+-]\s*class\s+\w+`, Description: "class changes", Priority: 1},
+		{Pattern: `^[+-]\s*interface\s+\w+`, Description: "interface changes", Priority: 2},
+	},
+	"php": {
+		{Pattern: `^[+-]\s*function\s+\w+`, Description: "function changes", Priority: 1},
+		{Pattern: `^[+-]\s*class\s+\w+`, Description: "class changes", Priority: 1},
+		{Pattern: `^[+-]\s*interface\s+\w+`, Description: "interface changes", Priority: 2},
+	},
+	}
 
 type DiffAnalyzer struct {
 	MaxLines       int
