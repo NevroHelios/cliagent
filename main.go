@@ -42,7 +42,7 @@ func main() {
 	GROQ_API_KEY := os.Getenv("GROQ_API_KEY")
 
 	// check if the user wats to chat or commit
-	var purpose string
+	var purpose string = "commit"
 	// purForm := huh.NewSelect[string]().
 	// 	Title("Whats the mood?").
 	// 	Options(
