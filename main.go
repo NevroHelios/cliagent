@@ -3,10 +3,10 @@ package main
 import (
 	"fmt"
 	"strings"
+	"os"
 
 	// "os/exec"
 	"democli/start/utils"
-	"os"
 
 	"github.com/atotto/clipboard"
 	"github.com/charmbracelet/huh"
@@ -43,19 +43,19 @@ func main() {
 
 	// check if the user wats to chat or commit
 	var purpose string
-	purForm := huh.NewSelect[string]().
-		Title("Whats the mood?").
-		Options(
-			huh.NewOption("chat", "chat"),
-			huh.NewOption("generate commit msg!", "commit"),
-		).
-		Value(&purpose)
+	// purForm := huh.NewSelect[string]().
+	// 	Title("Whats the mood?").
+	// 	Options(
+	// 		huh.NewOption("chat", "chat"),
+	// 		huh.NewOption("generate commit msg!", "commit"),
+	// 	).
+	// 	Value(&purpose)
 
-	err = purForm.Run()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	// err = purForm.Run()
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return
+	// }
 
 	// fetch the available models
 	loadHuhModelOption(GROQ_API_KEY)
@@ -90,7 +90,19 @@ func main() {
 		}
 	}
 
-	Prompt = getPrompt(purpose, Prompt)
+	analyzer := NewDiffAnalyzer()
+	cmd, err := utils.RunCommand("git", "diff")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	Prompt, err = analyzer.analyzeGitDiff(cmd)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 
 	// fmt.Println(Prompt)
 	if Prompt != "" {
