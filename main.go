@@ -21,6 +21,7 @@ var (
 	AvailableModels []string
 	ModelsMapped    map[string]interface{}
 	modelOptions    []huh.Option[string]
+	GROQ_API_KEY	string
 )
 
 func loadHuhModelOption(API_KEY string) {
@@ -34,12 +35,16 @@ func loadHuhModelOption(API_KEY string) {
 
 func main() {
 
-	// load the env
-	err := godotenv.Load("/home/shrek/Desktop/projects/gocli/.env")
-	if err != nil {
-		fmt.Println("Error loading .env file", err)
+	// if api not provided during build time
+	if GROQ_API_KEY == "" {
+		// load the env
+		err := godotenv.Load("~/$HOME/Desktop/projects/gocli/.env")
+		if err != nil {
+			fmt.Println("Error loading .env file", err)
+			return
+		}
+		GROQ_API_KEY = os.Getenv("GROQ_API_KEY")
 	}
-	GROQ_API_KEY := os.Getenv("GROQ_API_KEY")
 
 	// check if the user wats to chat or commit
 	var purpose string = "commit"
@@ -51,7 +56,7 @@ func main() {
 		).
 		Value(&purpose)
 
-	err = purForm.Run()
+	err := purForm.Run()
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -133,13 +138,13 @@ func main() {
 		fmt.Println(res)
 	
 		// copy to clipboard
-		if purpose == "commit" {
-			clipErr := clipboard.WriteAll(res)
-			if clipErr != nil {
-				fmt.Println("failed to copy ", clipErr)
-				return
-			}
+		// if purpose == "commit" {
+		clipErr := clipboard.WriteAll(res)
+		if clipErr != nil {
+			fmt.Println("failed to copy ", clipErr)
+			return
 		}
+		// }
 	} else {
 		fmt.Println("yare yare! Prompt is empty!!!")
 	}

@@ -4,4 +4,4 @@ run:
 	go run *.go
 
 build:
-	go build -o gocommit
+	go build -o gocli
