@@ -43,19 +43,19 @@ func main() {
 
 	// check if the user wats to chat or commit
 	var purpose string = "commit"
-	// purForm := huh.NewSelect[string]().
-	// 	Title("Whats the mood?").
-	// 	Options(
-	// 		huh.NewOption("chat", "chat"),
-	// 		huh.NewOption("generate commit msg!", "commit"),
-	// 	).
-	// 	Value(&purpose)
+	purForm := huh.NewSelect[string]().
+		Title("Whats the mood?").
+		Options(
+			huh.NewOption("generate commit msg!", "commit"),
+			huh.NewOption("anything else?", "chat"),
+		).
+		Value(&purpose)
 
-	// err = purForm.Run()
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
+	err = purForm.Run()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
 	// fetch the available models
 	loadHuhModelOption(GROQ_API_KEY)
@@ -76,31 +76,47 @@ func main() {
 		fmt.Println(runErr)
 		return
 	}
-	// its onlly for the chat purpose
+
+	analyzer := NewDiffAnalyzer()
+	// its only for the chat purpose
+	var user_query string
 	if purpose == "chat" {
 		inputForm := huh.NewInput().
 			Title("Something different? ").
 			Placeholder("Tell me a joke!").
-			Value(&Prompt)
+			Value(&user_query)
 
 		runErr := inputForm.Run()
 		if runErr != nil {
 			fmt.Println(runErr)
 			return
 		}
-	}
+		var llm_context string
+		context, err := SearchDirectory(".")
+		if err != nil {
+			fmt.Println(err)
+		}
+		
+		for t := 0; t < len(context); t++ {
+			llm_context = llm_context + context[t].FilePath + "\n"
+			llm_context = llm_context + "Imports: " + strings.Join(context[t].Imports, ", ") + "\n"
+			llm_context = llm_context + "Functions: " + strings.Join(context[t].Functions, ", ") + "\n"
+			llm_context = llm_context + "Variables: " + strings.Join(context[t].Variables, ", ") + "\n"
+		}
 
-	analyzer := NewDiffAnalyzer()
-	cmd, err := utils.RunCommand("git", "diff")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	Prompt, err = analyzer.analyzeGitDiff(cmd)
-	if err != nil {
-		fmt.Println(err)
-		return
+		Prompt = "Context: " + llm_context + "\n\nUser Query: " + user_query
+	};if purpose == "commit" {
+		cmd, err := utils.RunCommand("git", "diff")
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		
+		Prompt, err = analyzer.analyzeGitDiff(cmd)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
 	}
 
 

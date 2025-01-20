@@ -1,7 +1,15 @@
 package main
 
+// import (
+// 	"fmt"
+// 	"regexp"
+// 	"strings"
+// )
 import (
+	"bufio"
 	"fmt"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 )
@@ -72,6 +80,120 @@ type DiffAnalyzer struct {
 	ContextLines   int
 	ImportantFiles []string
 	IgnorePatterns []string
+}
+
+
+
+// Supported file extensions for code analysis
+var relevantExtensions = []string{".go", ".c", ".cpp", ".py", ".js", ".ts", ".tsx", ".jsx"}
+
+// Regex patterns for code analysis
+var (
+	importRegex   = regexp.MustCompile(`(?i)\b(import|include|from|require)\b.*`)
+	functionRegex = regexp.MustCompile(`(?i)\b(func|def|function)\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\(`)
+	variableRegex = regexp.MustCompile(`(?i)\b(var|let|const|[a-zA-Z_][a-zA-Z0-9_]*\s*(:?=|:))`)
+)
+
+// CodeEssence represents the essential elements extracted from a code file
+type CodeEssence struct {
+	FilePath  string   `json:"filePath"`
+	Imports   []string `json:"imports,omitempty"`
+	Functions []string `json:"functions,omitempty"`
+	Variables []string `json:"variables,omitempty"`
+}
+
+// ExtractEssenceFromFile analyzes a single file and extracts its code essence
+func ExtractEssenceFromFile(filePath string) (*CodeEssence, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open file %s: %w", filePath, err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	essence := &CodeEssence{
+		FilePath:  filePath,
+		Imports:   make([]string, 0),
+		Functions: make([]string, 0),
+		Variables: make([]string, 0),
+	}
+
+	var multilineComment bool
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+
+		// Skip empty lines and comments
+		if line == "" || strings.HasPrefix(line, "//") {
+			continue
+		}
+
+		// Handle multiline comments
+		if strings.HasPrefix(line, "/*") {
+			multilineComment = true
+			continue
+		}
+		if multilineComment {
+			if strings.Contains(line, "*/") {
+				multilineComment = false
+			}
+			continue
+		}
+
+		// Extract code elements
+		switch {
+		case importRegex.MatchString(line):
+			essence.Imports = append(essence.Imports, line)
+		case functionRegex.MatchString(line):
+			essence.Functions = append(essence.Functions, line)
+		case variableRegex.MatchString(line):
+			essence.Variables = append(essence.Variables, line)
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("error scanning file %s: %w", filePath, err)
+	}
+
+	return essence, nil
+}
+
+// SearchDirectory recursively searches a directory for relevant code files
+func SearchDirectory(root string) ([]*CodeEssence, error) {
+	var results []*CodeEssence
+
+	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return fmt.Errorf("error accessing path %s: %w", path, err)
+		}
+
+		if !info.IsDir() && isRelevantFile(path) {
+			essence, err := ExtractEssenceFromFile(path)
+			if err != nil {
+				// Log error but continue processing other files
+				fmt.Fprintf(os.Stderr, "Error processing %s: %v\n", path, err)
+				return nil
+			}
+			results = append(results, essence)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("error walking directory %s: %w", root, err)
+	}
+
+	return results, nil
+}
+
+// isRelevantFile checks if a file has a supported extension
+func isRelevantFile(filePath string) bool {
+	ext := strings.ToLower(filepath.Ext(filePath))
+	for _, relevantExt := range relevantExtensions {
+		if ext == relevantExt {
+			return true
+		}
+	}
+	return false
 }
 
 func NewDiffAnalyzer() *DiffAnalyzer {
@@ -217,6 +339,14 @@ func detectLanguage(diffLine string) string {
 		return "javascript"
 	} else if strings.HasSuffix(diffLine, ".py") {
 		return "python"
+	} else if strings.HasSuffix(diffLine, ".java") {
+		return "java"
+	} else if strings.HasSuffix(diffLine, ".c") || strings.HasSuffix(diffLine, ".cpp") {
+		return "c"
+	} else if strings.HasSuffix(diffLine, ".rb") {
+		return "ruby"
+	} else if strings.HasSuffix(diffLine, ".cs") {
+		return "csharp"
 	}
 	return ""
 }
