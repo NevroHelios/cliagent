@@ -1,10 +1,5 @@
 package main
 
-// import (
-// 	"fmt"
-// 	"regexp"
-// 	"strings"
-// )
 import (
 	"bufio"
 	"fmt"
@@ -83,18 +78,13 @@ type DiffAnalyzer struct {
 }
 
 
-
-// Supported file extensions for code analysis
 var relevantExtensions = []string{".go", ".c", ".cpp", ".py", ".js", ".ts", ".tsx", ".jsx"}
 
-// Regex patterns for code analysis
 var (
 	importRegex   = regexp.MustCompile(`(?i)\b(import|include|from|require)\b.*`)
 	functionRegex = regexp.MustCompile(`(?i)\b(func|def|function)\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\(`)
 	variableRegex = regexp.MustCompile(`(?i)\b(var|let|const|[a-zA-Z_][a-zA-Z0-9_]*\s*(:?=|:))`)
 )
-
-// CodeEssence represents the essential elements extracted from a code file
 type CodeEssence struct {
 	FilePath  string   `json:"filePath"`
 	Imports   []string `json:"imports,omitempty"`
@@ -102,7 +92,6 @@ type CodeEssence struct {
 	Variables []string `json:"variables,omitempty"`
 }
 
-// ExtractEssenceFromFile analyzes a single file and extracts its code essence
 func ExtractEssenceFromFile(filePath string) (*CodeEssence, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -122,12 +111,10 @@ func ExtractEssenceFromFile(filePath string) (*CodeEssence, error) {
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 
-		// Skip empty lines and comments
 		if line == "" || strings.HasPrefix(line, "//") {
 			continue
 		}
 
-		// Handle multiline comments
 		if strings.HasPrefix(line, "/*") {
 			multilineComment = true
 			continue
@@ -138,8 +125,6 @@ func ExtractEssenceFromFile(filePath string) (*CodeEssence, error) {
 			}
 			continue
 		}
-
-		// Extract code elements
 		switch {
 		case importRegex.MatchString(line):
 			essence.Imports = append(essence.Imports, line)
@@ -157,7 +142,6 @@ func ExtractEssenceFromFile(filePath string) (*CodeEssence, error) {
 	return essence, nil
 }
 
-// SearchDirectory recursively searches a directory for relevant code files
 func SearchDirectory(root string) ([]*CodeEssence, error) {
 	var results []*CodeEssence
 
